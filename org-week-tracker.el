@@ -69,7 +69,7 @@
 (defvar org-week-tracker-map nil "Keymap for `org-week-tracker'")
 (progn
   (setq org-week-tracker-map (make-sparse-keymap))
-  (define-key org-week-tracker-map (kbd "C-c .") 'org-week-tracker-open-month)
+  (define-key org-week-tracker-map (kbd "C-c .") 'org-week-tracker-open-current-month)
   (define-key org-week-tracker-map (kbd "C-c <up>") 'org-week-tracker-open-prev-month)
   (define-key org-week-tracker-map (kbd "C-c <down>") 'org-week-tracker-open-next-month))
 
@@ -199,7 +199,7 @@
   (delete-blank-lines))
 
 ;; navigation
-(defun org-week-tracker-open-month ()
+(defun org-week-tracker-open-current-month ()
   "open current month subtree"
   (interactive)
   (outline-up-heading 1)
