@@ -28,8 +28,6 @@
 
 ;;; Commentary:
 
-;; org-week-tracker is a simple week review tool
-
 ;; To use org-week-tracker, make sure that this file is in Emacs load-path
 ;; (add-to-list 'load-path "/path/to/directory/")
 ;;
@@ -46,31 +44,30 @@
 
 ;;; Code:
 
-;; create the list for font-lock.
-;; each category of keyword is given a particular face
-;; (setq org-week-tracker-font-lock-keywords
-;;       `(
-;;         (,org-week-tracker-keywords-regexp . font-lock-keyword-face)
-;;         (,org-week-tracker-days-regexp . font-lock-builtin-face)
-;;         (,org-week-tracker-months-regexp . font-lock-builtin-face)
-;;         (,header-regexp . font-lock-function-name-face)
-;;         ;;(,header-2-regexp . font-lock-constant-face)
-;;         ))
+(require 'timezone)
+(require 'calendar)
 
 (defvar org-week-tracker-file "~/.org-week-tracker.org" "org week tracker File")
 (defvar org-week-tracker-exclude-day-list "org week tracker day list to exclude")
 (defvar org-week-tracker-week (cond ((equal current-language-environment "French") "Semaine" )
                                     ((equal current-language-environment "Deutch") "Woche")
                                     (t  "Week")) "Week in current language")
-(require 'timezone)
+(defvar org-week-tracker-hook nil)
+(defvar org-week-tracker-map nil "Keymap for `org-week-tracker'")
+(progn
+  (setq org-week-tracker-map (make-sparse-keymap))
+  (define-key org-week-tracker-map (kbd "C-c C-c") 'org-week-tracker-open-month)
+  (define-key org-week-tracker-map (kbd "C-c <up>") 'org-week-tracker-open-prev-month)
+  (define-key org-week-tracker-map (kbd "C-c <down>") 'org-week-tracker-open-next-month)
+  )
+
 
 ;;;###autoload
-(define-derived-mode org-week-tracker org-mode
-  "org-week-tracker mode: Major mode for tracking time"
-  ;; code for syntax highlighting
-  (setq font-lock-defaults '((org-week-tracker-font-lock-keywords)))
-  ;; read-only
-  (setq buffer-read-only t))
+(define-derived-mode org-week-tracker org-mode "org-week-tracker mode"
+  "Major mode for tracking time
+  \\{org-week-tracker-map}"
+  (use-local-map org-week-tracker-map)
+)
 
 (defun org-week-tracker-goto-current-entry (&optional ask)
   " create or goto entry
@@ -90,7 +87,9 @@
                        (find-file-noselect filename)
                        (error "Unable to find buffer for file: %s" filename))))
       (switch-to-buffer buffer)
+      (org-week-tracker)
       (org-set-startup-visibility)
+      (setq inhibit-read-only t)
       ;; insert year if no exist
       (org-week-tracker-find-insert "^\\*+[ \t]+\\([12][0-9]\\{3\\}\\)\\(\\s-*?\\\([ \t]:[[:alnum:]:_@#%%]+:\\)?\\s-*$\\)" year nil (format "%s\n" year))
       ;; insert month if no exist
@@ -101,6 +100,7 @@
           (org-week-tracker-insert-tables-dates-for-month month year))
       ;; align all tables
       (org-table-map-tables 'org-table-align)
+      (setq inhibit-read-only nil)
       ;; gotoWeek
       (goto-char (point-min))
       (setq time (encode-time 1 1 0 day month year))
@@ -109,10 +109,9 @@
       ;; show all buffer
       (widen)
       ;; open the good week
-      (org-set-startup-visibility)
-      (outline-show-branches)
-      (org-reveal)
-      (org-cycle)
+      (org-reveal t)
+      (org-show-entry)
+      (show-children)
       ;; go to day
       (search-forward (capitalize (format-time-string "%a" time)))
       (org-table-next-field)
@@ -141,10 +140,12 @@
 
 (defun org-week-tracker-insert-line (year &optional month text)
   (delete-region (save-excursion (skip-chars-backward " \t\n") (point)) (point))
+  (push-mark)
   (insert "\n" (make-string 1 ?*) " \n")
   (backward-char)
   (when month (org-do-demote))
   (insert text)
+  (add-text-properties (point) (mark) '(read-only t))
   (beginning-of-line))
 
 ;; insert month dates
@@ -168,6 +169,7 @@
                 (insert (format "\t|--+--+--+--\n"))
                 (setq day (1+ day)))
             (progn
+              (push-mark)
               ;; new week
               (insert (format "*** %s %s " org-week-tracker-week (format-time-string "%W" time)))
               (setq beg_time (encode-time 1 1 0 day month year))
@@ -178,12 +180,37 @@
                 (setq last_day_week (1+ last_day_week)))
               (setq end_time (encode-time 1 1 0 last_day_week month year))
               (insert (format-time-string " %d/%m/%y)\n" end_time))
+              (add-text-properties (point) (mark) '(read-only t))
               ;; table head
               (insert "\t|<8>|<30>|<90>| \n")
               (insert "\t|--|--|--\n")
               (setq last_week week)))))
       (setq time (encode-time 1 1 0 day month year))))
   (delete-blank-lines))
+
+;; navigation
+(defun org-week-tracker-open-month ()
+  (interactive)
+  (outline-up-heading 1)
+  (outline-hide-body)
+  (org-cycle 3))
+(defun org-week-tracker-open-prev-month ()
+  (interactive)
+  ;; if not on sub-heading => goto prev sub-heading
+  (if (not (string-match "^*+ [0-9][0-9] " (buffer-substring-no-properties (line-beginning-position) (line-beginning-position 2))))
+      (outline-up-heading 1))
+  (org-reveal)
+  (outline-hide-subtree)
+  (org-previous-visible-heading 1)
+  (org-cycle 2))
+(defun org-week-tracker-open-next-month ()
+  (interactive)
+  (if (not (string-match "^*+ [0-9][0-9] " (buffer-substring-no-properties (line-beginning-position) (line-beginning-position 2))))
+      (outline-next-heading 1))
+  (org-reveal)
+  (outline-hide-subtree)
+  (org-next-visible-heading 1)
+  (org-cycle 2))
 
 ;; clear memory. no longer needed
 (setq org-week-tracker-keywords nil)
@@ -195,10 +222,8 @@
 (provide 'org-week-tracker)
 
 ;; TODO
-;; * read-only (avec indirect-buffer ?)
-;; * coherence langues
-;; * syntax higlight
-;; * trop de string-to-number
+;; * syntax higlight (compliqué)
+;; * navigation month to month
 
 ;; Local Variables:
 ;; coding: utf-8
