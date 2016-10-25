@@ -42,10 +42,10 @@ You can exclude some days with the org-week-tracker-day-list
 in org-week-tracker buffer:
 
 | Shortcut   | command                             | description              |
-| ---------- |:-----------------------------------:|:------------------------:|
+| ---------- | ----------------------------------- | ------------------------ |
 | C-c .      | org-week-tracker-open-current-month | visualize current month  |
-| C-c <up>   | org-week-tracker-open-prev-month    | visualize previous month |
-| C-c <down> | org-week-tracker-open-next-month    | visualize next month     |
+| C-c up     | org-week-tracker-open-prev-month    | visualize previous month |
+| C-c down   | org-week-tracker-open-next-month    | visualize next month     |
 
 
 contributions are welcome !
