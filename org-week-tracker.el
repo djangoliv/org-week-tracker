@@ -1,11 +1,11 @@
-;;; org-week-tracker.el --- Simple week review
+;;; org-week-tracker.el --- Simple table week review
 
-;; Copyright (C) 2015 Djangoliv'
+;; Copyright (C) 2016 Djangoliv'
 
 ;; Author: Djangoliv <djangoliv@mailoo.com>
 ;; URL:  https://github.com/djangoliv/org-week-tracker
 ;; Version: 0.1
-;; Keywords: org, week
+;; Keywords: org, week, table
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -34,6 +34,12 @@
 ;; Then require org-week-tracker
 ;; (require 'org-week-tracker)
 
+;; you can specify the org-week-tracker file
+;; (setq org-week-tracker-file "~/.emacs.d/time-tracker.org") ;; for example
+
+;; you can also define a shortcut
+;; (global-set-key (kbd "s-<end>") 'org-week-tracker-goto-current-entry)
+
 ;; To start org-week-tracker
 ;; M-x org-week-tracker-go-to-current-entry
 ;;
@@ -42,8 +48,15 @@
 ;; (setq org-week-tracker-exclude-day-list '(0)) ;; exclude sunday
 ;; (setq org-week-tracker-exclude-day-list '(0 6)) ;; exclude sturday and sunday
 
+;; shortcuts
+;; in org-week-tracker buffer:
+;; * C-c . : visualize current month
+;; * C-c <up> : previous month
+;; * C-c <down> : next month
+
 ;;; Code:
 
+(require 'org)
 (require 'timezone)
 (require 'calendar)
 
@@ -52,25 +65,22 @@
 (defvar org-week-tracker-week (cond ((equal current-language-environment "French") "Semaine" )
                                     ((equal current-language-environment "Deutch") "Woche")
                                     (t  "Week")) "Week in current language")
-(defvar org-week-tracker-hook nil)
+
 (defvar org-week-tracker-map nil "Keymap for `org-week-tracker'")
 (progn
   (setq org-week-tracker-map (make-sparse-keymap))
-  (define-key org-week-tracker-map (kbd "C-c C-c") 'org-week-tracker-open-month)
+  (define-key org-week-tracker-map (kbd "C-c .") 'org-week-tracker-open-month)
   (define-key org-week-tracker-map (kbd "C-c <up>") 'org-week-tracker-open-prev-month)
-  (define-key org-week-tracker-map (kbd "C-c <down>") 'org-week-tracker-open-next-month)
-  )
-
+  (define-key org-week-tracker-map (kbd "C-c <down>") 'org-week-tracker-open-next-month))
 
 ;;;###autoload
 (define-derived-mode org-week-tracker org-mode "org-week-tracker mode"
-  "Major mode for tracking time
+  "Major mode for tracking actions by week with tables
   \\{org-week-tracker-map}"
-  (use-local-map org-week-tracker-map)
 )
 
 (defun org-week-tracker-goto-current-entry (&optional ask)
-  " create or goto entry
+  " create and/or goto current week entry (with arguments ask for date)
     create month by month and go to the good day"
   (interactive "P")
   (let ((year (format-time-string "%Y")) (month (format-time-string "%m")) (day (format-time-string "%d"))  (week-line) (time))
@@ -111,7 +121,7 @@
       ;; open the good week
       (org-reveal t)
       (org-show-entry)
-      (show-children)
+      (outline-show-children)
       ;; go to day
       (search-forward (capitalize (format-time-string "%a" time)))
       (org-table-next-field)
@@ -139,6 +149,7 @@
       (org-week-tracker-insert-line year month toInsert)))))
 
 (defun org-week-tracker-insert-line (year &optional month text)
+  "insert text"
   (delete-region (save-excursion (skip-chars-backward " \t\n") (point)) (point))
   (push-mark)
   (insert "\n" (make-string 1 ?*) " \n")
@@ -148,7 +159,6 @@
   (add-text-properties (point) (mark) '(read-only t))
   (beginning-of-line))
 
-;; insert month dates
 (defun org-week-tracker-insert-tables-dates-for-month (month year)
   "insert a bunch of tables dates by week"
   (let* ((day 1) (last_week) (last_day_week) (week) (day_name) (beg_time) (end_time)
@@ -190,11 +200,13 @@
 
 ;; navigation
 (defun org-week-tracker-open-month ()
+  "open current month subtree"
   (interactive)
   (outline-up-heading 1)
   (outline-hide-body)
   (org-cycle 3))
 (defun org-week-tracker-open-prev-month ()
+  "open previous month subtree"
   (interactive)
   ;; if not on sub-heading => goto prev sub-heading
   (if (not (string-match "^*+ [0-9][0-9] " (buffer-substring-no-properties (line-beginning-position) (line-beginning-position 2))))
@@ -204,26 +216,17 @@
   (org-previous-visible-heading 1)
   (org-cycle 2))
 (defun org-week-tracker-open-next-month ()
+  "open next month subtree"
   (interactive)
   (if (not (string-match "^*+ [0-9][0-9] " (buffer-substring-no-properties (line-beginning-position) (line-beginning-position 2))))
-      (outline-next-heading 1))
+      (outline-next-heading))
   (org-reveal)
   (outline-hide-subtree)
   (org-next-visible-heading 1)
   (org-cycle 2))
 
-;; clear memory. no longer needed
-(setq org-week-tracker-keywords nil)
-
-;; clear memory. no longer needed
-(setq org-week-tracker-keywords-regexp nil)
-
 ;; add the mode to the `features' list
 (provide 'org-week-tracker)
-
-;; TODO
-;; * syntax higlight (compliqué)
-;; * navigation month to month
 
 ;; Local Variables:
 ;; coding: utf-8
