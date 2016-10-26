@@ -16,6 +16,10 @@ To start org-week-tracker
 ``` emacs-lisp
   M-x org-week-tracker-go-to-current-entry
 ```
+You can also define a shortcut
+``` emacs-lisp
+   (global-set-key (kbd "s-<end>") 'org-week-tracker-goto-current-entry)
+```
 
 ## Configuration
 
@@ -27,10 +31,6 @@ You can exclude some days with the org-week-tracker-day-list
 You can specify the org-week-tracker file
 ``` emacs-lisp
    (setq org-week-tracker-file "~/.emacs.d/time-tracker.org") ;; for example
-```
-You can also define a shortcut
-``` emacs-lisp
-   (global-set-key (kbd "s-<end>") 'org-week-tracker-goto-current-entry)
 ```
 You can exclude some days with the org-week-tracker-day-list
 ``` emacs-lisp
