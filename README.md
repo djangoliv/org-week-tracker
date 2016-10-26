@@ -23,11 +23,6 @@ You can also define a shortcut
 
 ## Configuration
 
-You can exclude some days with the org-week-tracker-day-list  
-``` emacs-lisp
-  (setq org-week-tracker-exclude-day-list '(0)) ;; exclude sunday  
-  (setq org-week-tracker-exclude-day-list '(0 6)) ;; exclude sturday and sunday
-```
 You can specify the org-week-tracker file
 ``` emacs-lisp
    (setq org-week-tracker-file "~/.emacs.d/time-tracker.org") ;; for example
