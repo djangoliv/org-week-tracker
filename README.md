@@ -9,7 +9,7 @@ To use org-week-tracker, make sure that this file is in Emacs load-path
 
 Then require org-week-tracker  
 ``` emacs-lisp
-  (require 'org-week-tracker)
+  (autoload 'org-week-tracker-goto-current-entry "org-week-tracker" nil t)
 ```
 
 To start org-week-tracker  
