@@ -45,10 +45,10 @@ in org-week-tracker buffer:
 | -------------- | ----------------------------------- | ------------------------------------------- |
 | C-c .          | org-week-tracker-open-current-month | visualize current month                     |
 | C-u C-c .      | org-week-tracker-open-current-month | visualize current month in indirect buffer  |
-| C \<up\>       | org-week-tracker-open-prev-month    | visualize previous month                    |
-| C-u C \<up\>   | org-week-tracker-open-prev-month    | visualize previous month in indirect buffer |
-| C \<down\>     | org-week-tracker-open-next-month    | visualize next month                        |
-| C-u C \<down\> | org-week-tracker-open-next-month    | visualize next month in indirect buffer     |
+| C-\<up\>       | org-week-tracker-open-prev-month    | visualize previous month                    |
+| C-u C-\<up\>   | org-week-tracker-open-prev-month    | visualize previous month in indirect buffer |
+| C-\<down\>     | org-week-tracker-open-next-month    | visualize next month                        |
+| C-u C-\<down\> | org-week-tracker-open-next-month    | visualize next month in indirect buffer     |
 
 
 contributions are welcome !
