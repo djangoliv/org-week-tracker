@@ -69,9 +69,9 @@
 (defvar org-week-tracker-map nil "Keymap for `org-week-tracker'")
 (progn
   (setq org-week-tracker-map (make-sparse-keymap))
-  (define-key org-week-tracker-map (kbd "C-c .") 'org-week-tracker-open-current-month)
-  (define-key org-week-tracker-map (kbd "C-c <up>") 'org-week-tracker-open-prev-month)
-  (define-key org-week-tracker-map (kbd "C-c <down>") 'org-week-tracker-open-next-month))
+  (define-key org-week-tracker-map (kbd "C-.") 'org-week-tracker-open-current-month)
+  (define-key org-week-tracker-map (kbd "C-<up>") 'org-week-tracker-open-prev-month)
+  (define-key org-week-tracker-map (kbd "C-<down>") 'org-week-tracker-open-next-month))
 
 ;;;###autoload
 (define-derived-mode org-week-tracker org-mode "org-week-tracker mode"
@@ -199,31 +199,36 @@
   (delete-blank-lines))
 
 ;; navigation
-(defun org-week-tracker-open-current-month ()
+(defun org-week-tracker-open-current-month (&optional arg)
   "open current month subtree"
-  (interactive)
+  (interactive "P")
+  (if (string-match "^*+ [0-9][0-9] " (buffer-substring-no-properties (line-beginning-position) (line-beginning-position 2)))
+      (forward-line))
   (outline-up-heading 1)
   (outline-hide-body)
-  (org-cycle 3))
-(defun org-week-tracker-open-prev-month ()
+  (org-cycle 3)
+  (if arg (org-tree-to-indirect-buffer)))
+(defun org-week-tracker-open-prev-month (&optional arg)
   "open previous month subtree"
-  (interactive)
+  (interactive "P")
   ;; if not on sub-heading => goto prev sub-heading
   (if (not (string-match "^*+ [0-9][0-9] " (buffer-substring-no-properties (line-beginning-position) (line-beginning-position 2))))
       (outline-up-heading 1))
   (org-reveal)
   (outline-hide-subtree)
   (org-previous-visible-heading 1)
-  (org-cycle 2))
-(defun org-week-tracker-open-next-month ()
+  (org-cycle 2)
+  (if arg (org-tree-to-indirect-buffer)))
+(defun org-week-tracker-open-next-month (&optional arg)
   "open next month subtree"
-  (interactive)
+  (interactive "P")
   (if (not (string-match "^*+ [0-9][0-9] " (buffer-substring-no-properties (line-beginning-position) (line-beginning-position 2))))
       (outline-next-heading))
   (org-reveal)
   (outline-hide-subtree)
   (org-next-visible-heading 1)
-  (org-cycle 2))
+  (org-cycle 2)
+  (if arg (org-tree-to-indirect-buffer)))
 
 ;; add the mode to the `features' list
 (provide 'org-week-tracker)
