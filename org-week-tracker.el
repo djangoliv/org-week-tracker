@@ -65,12 +65,13 @@
 (defvar org-week-tracker-week (cond ((equal current-language-environment "French") "Semaine" )
                                     ((equal current-language-environment "Deutch") "Woche")
                                     (t  "Week")) "Week in current language")
+(defvar org-week-tracker-calendar-date (calendar-current-date) "calendar interactions")
 
 (defvar org-week-tracker-map nil "Keymap for `org-week-tracker'")
 (progn
   (setq org-week-tracker-map (make-sparse-keymap))
-  (define-key org-week-tracker-map (kbd "C-:") 'org-week-tracker-run-calendar)
   (define-key org-week-tracker-map (kbd "C-.") 'org-week-tracker-open-current-month)
+  (define-key org-week-tracker-map (kbd "C-:") 'org-week-tracker-run-calendar)
   (define-key org-week-tracker-map (kbd "C-<up>") 'org-week-tracker-open-prev-month)
   (define-key org-week-tracker-map (kbd "C-<down>") 'org-week-tracker-open-next-month))
 
@@ -90,46 +91,46 @@
           (set 'year (read-from-minibuffer (format "Year (default %s): " (format-time-string "%Y")) (format-time-string "%Y")))
           (set 'month (read-from-minibuffer (format "Month (default %s): " (format-time-string "%m")) (format-time-string "%m")))
           (set 'day (read-from-minibuffer (format "Day (default %s): " (format-time-string "%d")) (format-time-string "%d")))))
-    (let* ((filename org-week-tracker-file)
-           (year (string-to-number year))
-           (month (string-to-number month))
-           (day (string-to-number day))
-           (buffer (or (org-find-base-buffer-visiting filename)
-                       (find-file-noselect filename)
-                       (error "Unable to find buffer for file: %s" filename))))
-      (switch-to-buffer buffer)
-      (org-week-tracker)
-      (org-set-startup-visibility)
-      (setq inhibit-read-only t)
-      ;; insert year if no exist
-      (org-week-tracker-find-insert "^\\*+[ \t]+\\([12][0-9]\\{3\\}\\)\\(\\s-*?\\\([ \t]:[[:alnum:]:_@#%%]+:\\)?\\s-*$\\)" year nil (format "%s\n" year))
-      ;; insert month if no exist
-      (org-week-tracker-find-insert "^\\*+[ \t]+\\([0-3][0-9]\\) [a-z]+$" year month
-                                (format-time-string "%m %B\n" (encode-time 0 0 0 day month year)))
-      ;; insert tree month if needed
-      (if (equal (char-after) 10)
-          (org-week-tracker-insert-tables-dates-for-month month year))
-      ;; align all tables
-      (org-table-map-tables 'org-table-align)
-      (setq inhibit-read-only nil)
-      ;; gotoWeek
-      (goto-char (point-min))
-      (setq time (encode-time 1 1 0 day month year))
-      (setq week-line (format "%s %s" org-week-tracker-week (format-time-string "%W" time)))
-      (search-forward week-line)
-      ;; show all buffer
-      (widen)
-      ;; close all trees
-      (org-set-startup-visibility)
-      ;; open the good week
-      (org-reveal t)
-      (org-show-entry)
-      (outline-show-children)
-      ;; go to day
-      (search-forward (capitalize (format-time-string "%a" time)))
-      (org-table-next-field)
-      ;; save
-      (save-buffer))))
+    (org-week-tracker-goto-date (string-to-number month) (string-to-number day) (string-to-number year))))
+
+(defun org-week-tracker-goto-date(month day year)
+  " find or create date tree for a date "
+  (let* ((filename org-week-tracker-file)
+         (time (encode-time 1 1 0 day month year))
+         (buffer (or (org-find-base-buffer-visiting filename)
+                     (find-file-noselect filename)
+                     (error "Unable to find buffer for file: %s" filename))))
+    (switch-to-buffer buffer)
+    (org-week-tracker)
+    (org-set-startup-visibility)
+    (setq inhibit-read-only t)
+    ;; insert year if no exist
+    (org-week-tracker-find-insert "^\\*+[ \t]+\\([12][0-9]\\{3\\}\\)\\(\\s-*?\\\([ \t]:[[:alnum:]:_@#%%]+:\\)?\\s-*$\\)" year nil (format "%s\n" year))
+    ;; insert month if no exist
+    (org-week-tracker-find-insert "^\\*+[ \t]+\\([0-3][0-9]\\) [a-z]+$" year month
+                                  (format-time-string "%m %B\n" (encode-time 0 0 0 day month year)))
+    ;; insert tree month if needed
+    (if (equal (char-after) 10)
+        (org-week-tracker-insert-tables-dates-for-month month year))
+    ;; align all tables
+    (org-table-map-tables 'org-table-align)
+    (setq inhibit-read-only nil)
+    ;; gotoWeek
+    (goto-char (point-min))
+    (search-forward (format "%s %s" org-week-tracker-week (format-time-string "%W" time))) ;; week-line
+    ;; show all buffer
+    (widen)
+    ;; close all trees
+    (org-set-startup-visibility)
+    ;; open the good week
+    (org-reveal t)
+    (org-show-entry)
+    (outline-show-children)
+    ;; go to day
+    (search-forward (capitalize (format-time-string "%a" time)))
+    (org-table-next-field)
+    ;; save
+    (save-buffer)))
 
 (defun org-week-tracker-find-insert (regex year &optional month toInsert)
   "find or insert"
@@ -233,42 +234,48 @@
   (org-cycle 2)
   (if arg (org-tree-to-indirect-buffer)))
 
-;; TODO calendar interactions
 (defun org-week-tracker-get-date ()
   "get date at point"
-  (let ((curent-line (buffer-substring-no-properties (line-beginning-position) (line-beginning-position 2))))
+  (let ((current-line (buffer-substring-no-properties (line-beginning-position) (line-beginning-position 2))) (tmp_month_or_day))
     (cond
      ;; YEAR line
-     ((string-match "^*+ \\([0-2][0-1][0-9][0-9]\\)" curent-line) 
-      (list 1 1 (string-to-number (match-string 1 curent-line))))
+     ((string-match "^*+ \\([0-2][0-1][0-9][0-9]\\)" current-line)
+      (list 1 1 (string-to-number (match-string 1 current-line))))
      ;; MONTH line
-     ((string-match "^*+ \\([0-9][0-9]\\) " curent-line)
-      (setq month (string-to-number (match-string 1 curent-line)))
+     ((string-match "^*+ \\([0-9][0-9]\\) " current-line)
+      (setq tmp_month_or_day (string-to-number (match-string 1 current-line)))
       (save-excursion ;; which year
         (re-search-backward "^*+ \\([0-2][0-1][0-9][0-9]\\)" nil t))
-      (list month 1 (string-to-number (match-string 1))))
+      (list tmp_month_or_day 1 (string-to-number (match-string 1))))
      ;; WEEK line
-     ((string-match "^*+ [a-z]* [0-9][0-9] (\\([0-9][0-9]\\)/\\([0-1][0-9]\\)/\\([0-9][0-9]\\)" curent-line) ;; get month and day
-      (list (string-to-number (match-string 2 curent-line)) (string-to-number (match-string 1 curent-line)) (string-to-number (format "20%s" (match-string 3 curent-line)))))
+     ((string-match "^*+ [a-z]* [0-9][0-9] (\\([0-9][0-9]\\)/\\([0-1][0-9]\\)/\\([0-9][0-9]\\)" current-line) ;; get month and day
+      (list (string-to-number (match-string 2 current-line)) (string-to-number (match-string 1 current-line)) (string-to-number (format "20%s" (match-string 3 current-line)))))
      ;; DAY line
-     ((string-match "| [A-Z,a-z]+. \\([0-9][0-9]\\) +|" curent-line)
-      (setq day (string-to-number (match-string 1 curent-line)))
+     ((string-match "| [A-Z,a-z]+. \\([0-9][0-9]\\) +|" current-line)
+      (setq tmp_month_or_day (string-to-number (match-string 1 current-line)))
       (save-excursion ;; which month and year
         (re-search-backward "^*+ [a-z]* [0-9][0-9] ([0-9][0-9]/\\([0-1][0-9]\\)/\\([0-9][0-9]\\)" nil t))
-      (list (string-to-number (match-string 1)) day (string-to-number (format "20%s" (match-string 2)))))
+      (list (string-to-number (match-string 1)) tmp_month_or_day (string-to-number (format "20%s" (match-string 2)))))
      (t
-      (message "Not a valid line")))))
+      (message "Not a valid line - between two dates") nil))))
 
 (defun org-week-tracker-run-calendar ()
   "open calendar in a split window and go to date at point"
   (interactive)
-  (let ((curent_date (org-week-tracker-get-date)))
-    (setq w1 (selected-window)) ; w1 = top window.
-    (setq w2 (split-window w1 35)) ; w2 = bottom window. ;; TODO variable
-    (calendar-basic-setup nil t)
-    (with-selected-window w2
-      (switch-to-buffer "*Calendar*")
-      (calendar-goto-date curent_date))))
+  (let ((current_date (org-week-tracker-get-date)))
+    (if current_date
+        (progn
+          (calendar-basic-setup nil nil)
+          (calendar-goto-date current_date)
+          (define-key calendar-mode-map (kbd "RET") 'org-week-tracker-pick-date)
+          ))))
+
+(defun org-week-tracker-pick-date ()
+  ;; choose a date from calendar
+  (interactive)
+  (setq org-week-tracker-calendar-date (calendar-cursor-to-date))
+  (switch-to-buffer-other-window (org-find-base-buffer-visiting org-week-tracker-file))
+  (apply 'org-week-tracker-goto-date org-week-tracker-calendar-date))
 
 ;; add the mode to the `features' list
 (provide 'org-week-tracker)
