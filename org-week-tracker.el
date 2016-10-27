@@ -69,6 +69,7 @@
 (defvar org-week-tracker-map nil "Keymap for `org-week-tracker'")
 (progn
   (setq org-week-tracker-map (make-sparse-keymap))
+  (define-key org-week-tracker-map (kbd "C-:") 'org-week-tracker-run-calendar)
   (define-key org-week-tracker-map (kbd "C-.") 'org-week-tracker-open-current-month)
   (define-key org-week-tracker-map (kbd "C-<up>") 'org-week-tracker-open-prev-month)
   (define-key org-week-tracker-map (kbd "C-<down>") 'org-week-tracker-open-next-month))
@@ -118,6 +119,8 @@
       (search-forward week-line)
       ;; show all buffer
       (widen)
+      ;; close all trees
+      (org-set-startup-visibility)
       ;; open the good week
       (org-reveal t)
       (org-show-entry)
@@ -229,6 +232,43 @@
   (org-next-visible-heading 1)
   (org-cycle 2)
   (if arg (org-tree-to-indirect-buffer)))
+
+;; TODO calendar interactions
+(defun org-week-tracker-get-date ()
+  "get date at point"
+  (let ((curent-line (buffer-substring-no-properties (line-beginning-position) (line-beginning-position 2))))
+    (cond
+     ;; YEAR line
+     ((string-match "^*+ \\([0-2][0-1][0-9][0-9]\\)" curent-line) 
+      (list 1 1 (string-to-number (match-string 1 curent-line))))
+     ;; MONTH line
+     ((string-match "^*+ \\([0-9][0-9]\\) " curent-line)
+      (setq month (string-to-number (match-string 1 curent-line)))
+      (save-excursion ;; which year
+        (re-search-backward "^*+ \\([0-2][0-1][0-9][0-9]\\)" nil t))
+      (list month 1 (string-to-number (match-string 1))))
+     ;; WEEK line
+     ((string-match "^*+ [a-z]* [0-9][0-9] (\\([0-9][0-9]\\)/\\([0-1][0-9]\\)/\\([0-9][0-9]\\)" curent-line) ;; get month and day
+      (list (string-to-number (match-string 2 curent-line)) (string-to-number (match-string 1 curent-line)) (string-to-number (format "20%s" (match-string 3 curent-line)))))
+     ;; DAY line
+     ((string-match "| [A-Z,a-z]+. \\([0-9][0-9]\\) +|" curent-line)
+      (setq day (string-to-number (match-string 1 curent-line)))
+      (save-excursion ;; which month and year
+        (re-search-backward "^*+ [a-z]* [0-9][0-9] ([0-9][0-9]/\\([0-1][0-9]\\)/\\([0-9][0-9]\\)" nil t))
+      (list (string-to-number (match-string 1)) day (string-to-number (format "20%s" (match-string 2)))))
+     (t
+      (message "Not a valid line")))))
+
+(defun org-week-tracker-run-calendar ()
+  "open calendar in a split window and go to date at point"
+  (interactive)
+  (let ((curent_date (org-week-tracker-get-date)))
+    (setq w1 (selected-window)) ; w1 = top window.
+    (setq w2 (split-window w1 35)) ; w2 = bottom window. ;; TODO variable
+    (calendar-basic-setup nil t)
+    (with-selected-window w2
+      (switch-to-buffer "*Calendar*")
+      (calendar-goto-date curent_date))))
 
 ;; add the mode to the `features' list
 (provide 'org-week-tracker)

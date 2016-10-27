@@ -27,10 +27,10 @@ You can specify the org-week-tracker file
 ``` emacs-lisp
    (setq org-week-tracker-file "~/.emacs.d/time-tracker.org") ;; for example
 ```
-You can exclude some days with the org-week-tracker-day-list
+You can exclude some days with the org-week-tracker-exclude-day-list
 ``` emacs-lisp
    (setq org-week-tracker-exclude-day-list '(0)) ;; exclude sunday
-   (setq org-week-tracker-exclude-day-list '(0 6)) ;; exclude sturday and sunday
+   (setq org-week-tracker-exclude-day-list '(0 6)) ;; exclude saturday and sunday
 ```
 
 ## shortcuts
@@ -44,6 +44,14 @@ in org-week-tracker buffer:
 | C-u C-\<up\>   | org-week-tracker-open-prev-month    | visualize previous month in indirect buffer |
 | C-\<down\>     | org-week-tracker-open-next-month    | visualize next month                        |
 | C-u C-\<down\> | org-week-tracker-open-next-month    | visualize next month in indirect buffer     |
+| C-c a          | org-week-tracker-run-calendar       | open calendar at curent date                |
 
+## License
+
+Copyright (C) 2016 Djangoliv'
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.  
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.  
+You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/.  
 
 contributions are welcome !
