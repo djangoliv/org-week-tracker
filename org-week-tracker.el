@@ -73,7 +73,9 @@
   (define-key org-week-tracker-map (kbd "C-.") 'org-week-tracker-open-current-month)
   (define-key org-week-tracker-map (kbd "C-:") 'org-week-tracker-run-calendar)
   (define-key org-week-tracker-map (kbd "C-<up>") 'org-week-tracker-open-prev-month)
-  (define-key org-week-tracker-map (kbd "C-<down>") 'org-week-tracker-open-next-month))
+  (define-key org-week-tracker-map (kbd "C-<down>") 'org-week-tracker-open-next-month)
+  (define-key org-week-tracker-map (kbd "C-S-<up>") 'org-week-tracker-open-prev-month-with-indirect-buffer)
+  (define-key org-week-tracker-map (kbd "C-S-<down>") 'org-week-tracker-open-next-month-with-indirect-buffer))
 
 ;;;###autoload
 (define-derived-mode org-week-tracker org-mode "org-week-tracker mode"
@@ -129,6 +131,8 @@
     ;; go to day
     (search-forward (capitalize (format-time-string "%a" time)))
     (org-table-next-field)
+    ;; info
+    (message "date: %s/%s/%s" day month year)
     ;; save
     (save-buffer)))
 
@@ -211,28 +215,72 @@
   (outline-up-heading 1)
   (outline-hide-body)
   (org-cycle 3)
-  (if arg (org-tree-to-indirect-buffer)))
-(defun org-week-tracker-open-prev-month (&optional arg)
+  (if arg
+      (progn
+        (org-tree-to-indirect-buffer)
+        (other-window 1)
+        (enlarge-window-horizontally 10)
+        (text-scale-decrease 1)
+        )))
+(defun org-week-tracker-open-prev-month ()
   "open previous month subtree"
-  (interactive "P")
+  (interactive)
   ;; if not on sub-heading => goto prev sub-heading
   (if (not (string-match "^*+ [0-9][0-9] " (buffer-substring-no-properties (line-beginning-position) (line-beginning-position 2))))
       (outline-up-heading 1))
   (org-reveal)
   (outline-hide-subtree)
   (org-previous-visible-heading 1)
-  (org-cycle 2)
-  (if arg (org-tree-to-indirect-buffer)))
-(defun org-week-tracker-open-next-month (&optional arg)
+  ;; if on year
+  (if (string-match  "^*+ \\([0-2][0-1][0-9][0-9]\\)" (buffer-substring-no-properties (line-beginning-position) (line-beginning-position 2)))
+      (progn
+        (outline-hide-subtree)
+        (org-previous-visible-heading 1)
+        (org-cycle)
+        (org-get-next-sibling)
+        (org-previous-visible-heading 1)))
+  (org-cycle 2))
+
+(defun org-week-tracker-open-prev-month-with-indirect-buffer ()
+  "open previous month subtree with indirect buffer"
+  (interactive)
+  (switch-to-buffer (org-find-base-buffer-visiting org-week-tracker-file))
+  (delete-other-windows)
+  (org-week-tracker-open-prev-month)
+  (org-tree-to-indirect-buffer)
+  (other-window 1)
+  (enlarge-window-horizontally 10)
+  (text-scale-decrease 1))
+
+(defun org-week-tracker-open-next-month ()
   "open next month subtree"
-  (interactive "P")
+  (interactive)
   (if (not (string-match "^*+ [0-9][0-9] " (buffer-substring-no-properties (line-beginning-position) (line-beginning-position 2))))
-      (outline-next-heading))
+      (outline-next-heading 1))
   (org-reveal)
   (outline-hide-subtree)
   (org-next-visible-heading 1)
-  (org-cycle 2)
-  (if arg (org-tree-to-indirect-buffer)))
+  ;; if on year
+  (if (string-match  "^*+ \\([0-2][0-1][0-9][0-9]\\)" (buffer-substring-no-properties (line-beginning-position) (line-beginning-position 2)))
+      (progn
+        (org-get-last-sibling)
+        (outline-hide-subtree)
+        (org-get-next-sibling)
+        (org-cycle)
+        (org-next-visible-heading 1)
+        (outline-show-subtree)))
+  (org-cycle 2))
+
+(defun org-week-tracker-open-next-month-with-indirect-buffer ()
+  "open previous month subtree with indirect buffer"
+  (interactive)
+  (switch-to-buffer (org-find-base-buffer-visiting org-week-tracker-file))
+  (delete-other-windows)
+  (org-week-tracker-open-next-month)
+  (org-tree-to-indirect-buffer)
+  (other-window 1)
+  (enlarge-window-horizontally 10)
+  (text-scale-decrease 1))
 
 (defun org-week-tracker-get-date ()
   "get date at point"
