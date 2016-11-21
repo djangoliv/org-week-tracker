@@ -78,10 +78,19 @@
   (define-key org-week-tracker-map (kbd "C-S-<down>") 'org-week-tracker-open-next-month-with-indirect-buffer))
 
 ;;;###autoload
-(define-derived-mode org-week-tracker org-mode "org-week-tracker mode"
+(define-derived-mode org-week-tracker org-mode "org-week-tracker"
   "Major mode for tracking actions by week with tables
   \\{org-week-tracker-map}"
-)
+  ;; readonly some part of text
+  (save-excursion
+    (beginning-of-line)(push-mark) (end-of-line) (add-text-properties (point) (mark) '(read-only t))
+    (setq moreLines t )
+    (while moreLines
+      (org-show-children)
+      (re-search-forward "\*\\||----\\|\ <" nil t)
+      (beginning-of-line)(push-mark) (end-of-line) (add-text-properties (point) (mark) '(read-only t))
+      (setq moreLines (= 0 (forward-line 1)))))
+ )
 
 (defun org-week-tracker-goto-current-entry (&optional ask)
   " create and/or goto current week entry (with arguments ask for date)
@@ -118,7 +127,7 @@
     (org-table-map-tables 'org-table-align)
     (setq inhibit-read-only nil)
     ;; gotoWeek
-    (goto-char (point-min))
+    (goto-char (point-min)) ;; beginning of buffer
     (search-forward (format "%s %s" org-week-tracker-week (format-time-string "%W" time))) ;; week-line
     ;; show all buffer
     (widen)
@@ -129,10 +138,11 @@
     (org-show-entry)
     (outline-show-children)
     ;; go to day
+    (message (capitalize (format-time-string "%a" time)))
     (search-forward (capitalize (format-time-string "%a" time)))
-    (org-table-next-field)
+    ;; (org-table-next-field)
     ;; info
-    (message "date: %s/%s/%s" day month year)
+    ;;(message "date: %s/%s/%s" day month year)
     ;; save
     (save-buffer)))
 
@@ -183,8 +193,7 @@
               (progn
                 ;; days
                 (setq day_name (format-time-string "%a" time))
-                (insert (format "\t|%s %02d| | | \n" (capitalize day_name) day))
-                (insert (format "\t|--+--+--+--\n"))
+                (insert (format "\t|%s %02d| | | \n\t|--+--+--+--\n" (capitalize day_name) day))
                 (setq day (1+ day)))
             (progn
               (push-mark)
@@ -200,8 +209,7 @@
               (insert (format-time-string " %d/%m/%y)\n" end_time))
               (add-text-properties (point) (mark) '(read-only t))
               ;; table head
-              (insert "\t|<8>|<30>|<90>| \n")
-              (insert "\t|--|--|--\n")
+              (insert "\t|<8>|<30>|<90>| \n\t|--|--|--\n")
               (setq last_week week)))))
       (setq time (encode-time 1 1 0 day month year))))
   (delete-blank-lines))
@@ -324,6 +332,10 @@
   (setq org-week-tracker-calendar-date (calendar-cursor-to-date))
   (switch-to-buffer-other-window (org-find-base-buffer-visiting org-week-tracker-file))
   (apply 'org-week-tracker-goto-date org-week-tracker-calendar-date))
+
+;; TODO: Reformater le fichier de suivi
+;;      faire un C-c C-k qui supprime un arbre
+;;      doc sur calendar ...
 
 ;; add the mode to the `features' list
 (provide 'org-week-tracker)
