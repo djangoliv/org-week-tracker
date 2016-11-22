@@ -75,13 +75,14 @@
   (define-key org-week-tracker-map (kbd "C-<up>") 'org-week-tracker-open-prev-month)
   (define-key org-week-tracker-map (kbd "C-<down>") 'org-week-tracker-open-next-month)
   (define-key org-week-tracker-map (kbd "C-S-<up>") 'org-week-tracker-open-prev-month-with-indirect-buffer)
-  (define-key org-week-tracker-map (kbd "C-S-<down>") 'org-week-tracker-open-next-month-with-indirect-buffer))
+  (define-key org-week-tracker-map (kbd "C-S-<down>") 'org-week-tracker-open-next-month-with-indirect-buffer)
+  (define-key org-week-tracker-map (kbd "C-c k") 'org-week-tracker-kill-current-subtree))
 
 ;;;###autoload
 (define-derived-mode org-week-tracker org-mode "org-week-tracker"
   "Major mode for tracking actions by week with tables
   \\{org-week-tracker-map}"
-  ;; readonly some part of text
+  ;; readonly properties
   (save-excursion
     (beginning-of-line)(push-mark) (end-of-line) (add-text-properties (point) (mark) '(read-only t))
     (setq moreLines t )
@@ -209,12 +210,13 @@
               (insert (format-time-string " %d/%m/%y)\n" end_time))
               (add-text-properties (point) (mark) '(read-only t))
               ;; table head
-              (insert "\t|<8>|<30>|<90>| \n\t|--|--|--\n")
+              (insert "\t|<7>|<25>|<90>| \n\t|--|--|--\n")
               (setq last_week week)))))
       (setq time (encode-time 1 1 0 day month year))))
   (delete-blank-lines))
 
 ;; navigation
+;;;;;;;;;;;;;;;;;;;;;;
 (defun org-week-tracker-open-current-month (&optional arg)
   "open current month subtree"
   (interactive "P")
@@ -290,6 +292,8 @@
   (enlarge-window-horizontally 10)
   (text-scale-decrease 1))
 
+;; Calendar interactions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun org-week-tracker-get-date ()
   "get date at point"
   (let ((current-line (buffer-substring-no-properties (line-beginning-position) (line-beginning-position 2))) (tmp_month_or_day))
@@ -333,9 +337,25 @@
   (switch-to-buffer-other-window (org-find-base-buffer-visiting org-week-tracker-file))
   (apply 'org-week-tracker-goto-date org-week-tracker-calendar-date))
 
-;; TODO: Reformater le fichier de suivi
-;;      faire un C-c C-k qui supprime un arbre
-;;      doc sur calendar ...
+;;;;;;;;;;;;;;;;;
+(defun org-week-tracker-kill-current-subtree ()
+  " kill current subtree "
+  (interactive)
+  (let ((current-line (buffer-substring-no-properties (line-beginning-position) (line-beginning-position 2))))
+    (cond
+     ;; YEAR line
+     ((string-match "^*+ \\([0-2][0-1][0-9][0-9]\\)" current-line)
+      (org-week-tracker-kill-subtree))
+     ((string-match "^*+ \\([0-9][0-9]\\) " current-line)
+      (org-week-tracker-kill-subtree))
+     (t
+      (message "action not permited here")))))
+(defun org-week-tracker-kill-subtree ()
+  "kill subtree without readonly pb"
+  (beginning-of-line)
+  (setq inhibit-read-only t)
+  (org-cut-special)
+  (setq inhibit-read-only nil))
 
 ;; add the mode to the `features' list
 (provide 'org-week-tracker)
