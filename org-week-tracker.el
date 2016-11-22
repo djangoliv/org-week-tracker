@@ -50,9 +50,13 @@
 
 ;; shortcuts
 ;; in org-week-tracker buffer:
-;; * C-c . : visualize current month
-;; * C-c <up> : previous month
-;; * C-c <down> : next month
+;; * C-. visualize current month
+;; * C-: open calendar at point
+;; * C-<up>  previous month
+;; * C-<down>  next month
+;; * C-Maj-<up>  previous month with indirect buffer
+;; * C-Maj-<down>  next month with indirect buffer
+;; * C-c k kill current subtree
 
 ;;; Code:
 
@@ -61,7 +65,7 @@
 (require 'calendar)
 
 (defvar org-week-tracker-file "~/.org-week-tracker.org" "org week tracker File")
-(defvar org-week-tracker-exclude-day-list "org week tracker day list to exclude")
+(defvar org-week-tracker-exclude-day-list '() "org week tracker day list to exclude")
 (defvar org-week-tracker-week (cond ((equal current-language-environment "French") "Semaine" )
                                     ((equal current-language-environment "Deutch") "Woche")
                                     (t  "Week")) "Week in current language")
@@ -83,15 +87,16 @@
   "Major mode for tracking actions by week with tables
   \\{org-week-tracker-map}"
   ;; readonly properties
-  (save-excursion
-    (beginning-of-line)(push-mark) (end-of-line) (add-text-properties (point) (mark) '(read-only t))
-    (setq moreLines t )
-    (while moreLines
-      (org-show-children)
-      (re-search-forward "\*\\||----\\|\ <" nil t)
-      (beginning-of-line)(push-mark) (end-of-line) (add-text-properties (point) (mark) '(read-only t))
-      (setq moreLines (= 0 (forward-line 1)))))
- )
+  (if (file-exists-p  org-week-tracker-file)
+      (save-excursion
+        (beginning-of-line)(push-mark) (end-of-line) (add-text-properties (point) (mark) '(read-only t))
+        (setq moreLines t)
+        (while moreLines
+          (org-show-children)
+          (re-search-forward "\*\\||----\\|\ <" nil t)
+          (beginning-of-line)(push-mark) (end-of-line) (add-text-properties (point) (mark) '(read-only t))
+          (setq moreLines (= 0 (forward-line 1)))))
+    ))
 
 (defun org-week-tracker-goto-current-entry (&optional ask)
   " create and/or goto current week entry (with arguments ask for date)
@@ -171,7 +176,9 @@
   "insert text"
   (delete-region (save-excursion (skip-chars-backward " \t\n") (point)) (point))
   (push-mark)
-  (insert "\n" (make-string 1 ?*) " \n")
+  (if (= (point) (point-min))
+      (insert (make-string 1 ?*) " \n")
+    (insert "\n" (make-string 1 ?*) " \n"))
   (backward-char)
   (when month (org-do-demote))
   (insert text)
@@ -265,21 +272,23 @@
 (defun org-week-tracker-open-next-month ()
   "open next month subtree"
   (interactive)
-  (if (not (string-match "^*+ [0-9][0-9] " (buffer-substring-no-properties (line-beginning-position) (line-beginning-position 2))))
-      (outline-next-heading 1))
-  (org-reveal)
-  (outline-hide-subtree)
-  (org-next-visible-heading 1)
-  ;; if on year
-  (if (string-match  "^*+ \\([0-2][0-1][0-9][0-9]\\)" (buffer-substring-no-properties (line-beginning-position) (line-beginning-position 2)))
+  (if (not (= (point) (point-max)))
       (progn
-        (org-get-last-sibling)
+        (if (not (string-match "^*+ [0-9][0-9] " (buffer-substring-no-properties (line-beginning-position) (line-beginning-position 2))))
+            (outline-next-heading))
+        (org-reveal)
         (outline-hide-subtree)
-        (org-get-next-sibling)
-        (org-cycle)
         (org-next-visible-heading 1)
-        (outline-show-subtree)))
-  (org-cycle 2))
+        ;; if on year
+        (if (string-match  "^*+ \\([0-2][0-1][0-9][0-9]\\)" (buffer-substring-no-properties (line-beginning-position) (line-beginning-position 2)))
+            (progn
+              (org-get-last-sibling)
+              (outline-hide-subtree)
+              (org-get-next-sibling)
+              (org-cycle)
+              (org-next-visible-heading 1)
+              (outline-show-subtree)))
+        (org-cycle 2))))
 
 (defun org-week-tracker-open-next-month-with-indirect-buffer ()
   "open previous month subtree with indirect buffer"
