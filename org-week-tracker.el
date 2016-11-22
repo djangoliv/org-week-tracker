@@ -70,6 +70,7 @@
                                     ((equal current-language-environment "Deutch") "Woche")
                                     (t  "Week")) "Week in current language")
 (defvar org-week-tracker-calendar-date (calendar-current-date) "calendar interactions")
+(defvar org-week-tracker-table-size '(7 20 90) "table column size")
 
 (defvar org-week-tracker-map nil "Keymap for `org-week-tracker'")
 (progn
@@ -146,11 +147,11 @@
     ;; go to day
     (message (capitalize (format-time-string "%a" time)))
     (search-forward (capitalize (format-time-string "%a" time)))
-    ;; (org-table-next-field)
-    ;; info
-    ;;(message "date: %s/%s/%s" day month year)
+    (org-table-next-field)
     ;; save
-    (save-buffer)))
+    (save-buffer)
+    ;; info
+    (message "date: %s/%s/%s" day month year)))
 
 (defun org-week-tracker-find-insert (regex year &optional month toInsert)
   "find or insert"
@@ -217,7 +218,7 @@
               (insert (format-time-string " %d/%m/%y)\n" end_time))
               (add-text-properties (point) (mark) '(read-only t))
               ;; table head
-              (insert "\t|<7>|<25>|<90>| \n\t|--|--|--\n")
+              (insert (apply 'format "\t|<%s>|<%s>|<%s>| \n\t|--|--|--\n" org-week-tracker-table-size))
               (setq last_week week)))))
       (setq time (encode-time 1 1 0 day month year))))
   (delete-blank-lines))
