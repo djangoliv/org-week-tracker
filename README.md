@@ -32,19 +32,24 @@ You can exclude some days with the org-week-tracker-exclude-day-list
    (setq org-week-tracker-exclude-day-list '(0)) ;; exclude sunday
    (setq org-week-tracker-exclude-day-list '(0 6)) ;; exclude saturday and sunday
 ```
+You can change de tables size
+``` emacs-lisp
+   (setq org-week-tracker-table-size '(7 20 90)) ;; Default
+```
 
 ## shortcuts
 in org-week-tracker buffer:
 
-| Shortcut       | cmmand                              | description                                 |
-| -------------- | ----------------------------------- | ------------------------------------------- |
-| C-c .          | org-week-tracker-open-current-month | visualize current month                     |
-| C-u C-c .      | org-week-tracker-open-current-month | visualize current month in indirect buffer  |
-| C-\<up\>       | org-week-tracker-open-prev-month    | visualize previous month                    |
-| C-u C-\<up\>   | org-week-tracker-open-prev-month    | visualize previous month in indirect buffer |
-| C-\<down\>     | org-week-tracker-open-next-month    | visualize next month                        |
-| C-u C-\<down\> | org-week-tracker-open-next-month    | visualize next month in indirect buffer     |
-| C-c a          | org-week-tracker-run-calendar       | open calendar at curent date                |
+| Shortcut       | cmmand                                | description                                 |
+| -------------- | ------------------------------------- | ------------------------------------------- |
+| C-.            | org-week-tracker-open-current-month   | visualize current month                     |
+| C-u C-.        | org-week-tracker-open-current-month   | visualize current month in indirect buffer  |
+| C-\<up\>       | org-week-tracker-open-prev-month      | visualize previous month                    |
+| C-S-\<up\>     | org-week-tracker-open-prev-month      | visualize previous month in indirect buffer |
+| C-\<down\>     | org-week-tracker-open-next-month      | visualize next month                        |
+| C-S-\<down\>   | org-week-tracker-open-next-month      | visualize next month in indirect buffer     |
+| C-c a          | org-week-tracker-run-calendar         | open calendar at curent date                |
+| C-c k          | org-week-tracker-kill-current-subtree | delete subtree                              |
 
 ## License
 
