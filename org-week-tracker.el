@@ -81,7 +81,8 @@
   (define-key org-week-tracker-map (kbd "C-<down>") 'org-week-tracker-open-next-month)
   (define-key org-week-tracker-map (kbd "C-S-<up>") 'org-week-tracker-open-prev-month-with-indirect-buffer)
   (define-key org-week-tracker-map (kbd "C-S-<down>") 'org-week-tracker-open-next-month-with-indirect-buffer)
-  (define-key org-week-tracker-map (kbd "C-c k") 'org-week-tracker-kill-current-subtree))
+  (define-key org-week-tracker-map (kbd "C-c k") 'org-week-tracker-kill-current-subtree)
+  (define-key org-week-tracker-map (kbd "RET") 'org-week-tracker-add-line))
 
 ;;;###autoload
 (define-derived-mode org-week-tracker org-mode "org-week-tracker"
@@ -366,6 +367,16 @@
   (setq inhibit-read-only t)
   (org-cut-special)
   (setq inhibit-read-only nil))
+
+;;;;;;;;;;;;;;;;;
+;; insert protection outside tables
+(defun org-week-tracker-add-line ()
+  "test if cursor is in table and then add line"
+  (interactive)
+  (let ((line_begin (buffer-substring-no-properties (line-beginning-position) (point)))(line_end (buffer-substring-no-properties (point) (line-end-position))))
+    (if (and (string-match "|" line_begin) (string-match "|" line_end))
+        (org-return)
+      (message "no newline outside table"))))
 
 ;; add the mode to the `features' list
 (provide 'org-week-tracker)
