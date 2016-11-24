@@ -69,7 +69,6 @@
 (defvar org-week-tracker-week (cond ((equal current-language-environment "French") "Semaine" )
                                     ((equal current-language-environment "Deutch") "Woche")
                                     (t  "Week")) "Week in current language")
-(defvar org-week-tracker-calendar-date (calendar-current-date) "calendar interactions")
 (defvar org-week-tracker-table-size '(7 20 90) "table column size")
 
 (defvar org-week-tracker-map nil "Keymap for `org-week-tracker'")
@@ -82,7 +81,10 @@
   (define-key org-week-tracker-map (kbd "C-S-<up>") 'org-week-tracker-open-prev-month-with-indirect-buffer)
   (define-key org-week-tracker-map (kbd "C-S-<down>") 'org-week-tracker-open-next-month-with-indirect-buffer)
   (define-key org-week-tracker-map (kbd "C-c k") 'org-week-tracker-kill-current-subtree)
-  (define-key org-week-tracker-map (kbd "RET") 'org-week-tracker-add-line))
+  (define-key org-week-tracker-map (kbd "RET") 'org-week-tracker-add-line)
+  (define-key org-week-tracker-map (kbd "<tab>") 'org-week-tracker-cycle))
+
+(defvar org-week-tracker-calendar-date (calendar-current-date) "calendar interactions")
 
 ;;;###autoload
 (define-derived-mode org-week-tracker org-mode "org-week-tracker"
@@ -377,6 +379,18 @@
     (if (and (string-match "|" line_begin) (string-match "|" line_end))
         (org-return)
       (message "no newline outside table"))))
+
+;; insert protection outside tables
+(defun org-week-tracker-cycle ()
+  "test if cursor is in table and then add line"
+  (interactive)
+  (let ((line (buffer-substring-no-properties (line-beginning-position) (line-end-position))))
+    (if (string-match "|" line)
+        (progn
+          (setq inhibit-read-only t)
+          (org-cycle)
+          (setq inhibit-read-only nil))
+      (org-cycle))))
 
 ;; add the mode to the `features' list
 (provide 'org-week-tracker)
