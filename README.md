@@ -18,7 +18,7 @@ To start org-week-tracker
 ```
 You can also define a shortcut
 ``` emacs-lisp
-   (global-set-key (kbd "s-<end>") 'org-week-tracker-goto-current-entry)
+   (global-set-key (kbd "C-c w") 'org-week-tracker-goto-current-entry)
 ```
 
 ## Configuration
