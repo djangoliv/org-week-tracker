@@ -40,16 +40,16 @@ You can change de tables size
 ## shortcuts
 in org-week-tracker buffer:
 
-| Shortcut       | cmmand                                | description                                 |
-| -------------- | ------------------------------------- | ------------------------------------------- |
-| C-.            | org-week-tracker-open-current-month   | visualize current month                     |
-| C-u C-.        | org-week-tracker-open-current-month   | visualize current month in indirect buffer  |
-| C-\<up\>       | org-week-tracker-open-prev-month      | visualize previous month                    |
-| C-S-\<up\>     | org-week-tracker-open-prev-month      | visualize previous month in indirect buffer |
-| C-\<down\>     | org-week-tracker-open-next-month      | visualize next month                        |
-| C-S-\<down\>   | org-week-tracker-open-next-month      | visualize next month in indirect buffer     |
-| C-c a          | org-week-tracker-run-calendar         | open calendar at curent date                |
-| C-c k          | org-week-tracker-kill-current-subtree | delete subtree                              |
+| Shortcut     | cmmand                                | description                                 |
+| ------------ | ------------------------------------- | ------------------------------------------- |
+| C-.          | org-week-tracker-open-current-month   | visualize current month                     |
+| C-u C-.      | org-week-tracker-open-current-month   | visualize current month in indirect buffer  |
+| C-\<up\>     | org-week-tracker-open-prev-month      | visualize previous month                    |
+| C-S-\<up\>   | org-week-tracker-open-prev-month      | visualize previous month in indirect buffer |
+| C-\<down\>   | org-week-tracker-open-next-month      | visualize next month                        |
+| C-S-\<down\> | org-week-tracker-open-next-month      | visualize next month in indirect buffer     |
+| C-:          | org-week-tracker-run-calendar         | open calendar at curent date                |
+| C-c k        | org-week-tracker-kill-current-subtree | delete subtree                              |
 
 ## License
 
