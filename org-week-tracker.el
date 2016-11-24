@@ -94,13 +94,12 @@
   (if (file-exists-p  org-week-tracker-file)
       (save-excursion
         (beginning-of-line)(push-mark) (end-of-line) (add-text-properties (point) (mark) '(read-only t))
-        (setq moreLines t)
-        (while moreLines
-          (org-show-children)
-          (re-search-forward "\*\\||----\\|\ <" nil t)
-          (beginning-of-line)(push-mark) (end-of-line) (add-text-properties (point) (mark) '(read-only t))
-          (setq moreLines (= 0 (forward-line 1)))))
-    ))
+        (let ((moreLines t))
+          (while moreLines
+            (org-show-children)
+            (re-search-forward "\*\\||----\\|\ <" nil t)
+            (beginning-of-line)(push-mark) (end-of-line) (add-text-properties (point) (mark) '(read-only t))
+            (setq moreLines (= 0 (forward-line 1))))))))
 
 (defun org-week-tracker-goto-current-entry (&optional ask)
   " create and/or goto current week entry (with arguments ask for date)
