@@ -142,14 +142,13 @@
     (widen)
     ;; close all trees
     (org-set-startup-visibility)
+    ;; go to day
+    (search-forward (capitalize (format-time-string "%a" time)))
+    (org-table-next-field)
     ;; open the good week
     (org-reveal t)
     (org-show-entry)
     (outline-show-children)
-    ;; go to day
-    (message (capitalize (format-time-string "%a" time)))
-    (search-forward (capitalize (format-time-string "%a" time)))
-    (org-table-next-field)
     ;; save
     (save-buffer)
     ;; info
