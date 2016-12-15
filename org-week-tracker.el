@@ -127,8 +127,7 @@
     ;; insert year if no exist
     (org-week-tracker-find-insert "^\\*+[ \t]+\\([12][0-9]\\{3\\}\\)\\(\\s-*?\\\([ \t]:[[:alnum:]:_@#%%]+:\\)?\\s-*$\\)" year nil (format "%s\n" year))
     ;; insert month if no exist
-    (org-week-tracker-find-insert "^\\*+[ \t]+\\([0-3][0-9]\\) [a-z]+$" year month
-                                  (format-time-string "%m %B\n" (encode-time 0 0 0 day month year)))
+    (org-week-tracker-find-insert "^\\*+[ \t]+\\([0-3][0-9]\\) [A-Za-zé]+$" year month (format-time-string "%m %B\n" (encode-time 0 0 0 day month year)))
     ;; insert tree month if needed
     (if (equal (char-after) 10)
         (org-week-tracker-insert-tables-dates-for-month month year))
@@ -239,8 +238,8 @@
         (org-tree-to-indirect-buffer)
         (other-window 1)
         (enlarge-window-horizontally 10)
-        (text-scale-decrease 1)
-        )))
+        (text-scale-decrease 1))))
+
 (defun org-week-tracker-open-prev-month ()
   "open previous month subtree"
   (interactive)
