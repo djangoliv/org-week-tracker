@@ -389,6 +389,9 @@
           (setq inhibit-read-only nil))
       (org-cycle))))
 
+;; always use the mode for org-week-tracker-file
+(add-to-list 'auto-mode-alist `(,(format "\\%s$" (file-name-nondirectory org-week-tracker-file)) . org-week-tracker))
+
 ;; add the mode to the `features' list
 (provide 'org-week-tracker)
 
